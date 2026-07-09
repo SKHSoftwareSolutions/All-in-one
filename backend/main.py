@@ -1,5 +1,6 @@
 import io
 import json
+import math
 import os
 import re
 import shutil
@@ -7,6 +8,7 @@ import smtplib
 import subprocess
 import tempfile
 import zipfile
+from collections import Counter
 from difflib import SequenceMatcher
 from email.message import EmailMessage
 from pathlib import Path
@@ -22,8 +24,31 @@ from pypdf import PdfReader, PdfWriter
 from reportlab.lib import pagesizes
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+
+_STOP_WORDS = frozenset({
+    'a', 'an', 'the', 'and', 'or', 'but', 'if', 'of', 'to', 'in', 'on', 'for', 'with', 'is', 'are', 'was', 'were',
+    'be', 'been', 'being', 'this', 'that', 'these', 'those', 'it', 'its', 'as', 'at', 'by', 'from', 'into', 'than',
+    'then', 'so', 'such', 'not', 'no', 'do', 'does', 'did', 'has', 'have', 'had', 'i', 'you', 'he', 'she', 'we',
+    'they', 'them', 'his', 'her', 'their', 'our', 'your', 'my',
+})
+
+
+def _tokenize(text: str) -> list[str]:
+    return [word for word in re.findall(r"[A-Za-z0-9']+", text.lower()) if word not in _STOP_WORDS]
+
+
+def _cosine_similarity(text_a: str, text_b: str) -> float:
+    counts_a = Counter(_tokenize(text_a))
+    counts_b = Counter(_tokenize(text_b))
+    if not counts_a or not counts_b:
+        return 0.0
+    shared_words = set(counts_a) & set(counts_b)
+    dot_product = sum(counts_a[word] * counts_b[word] for word in shared_words)
+    norm_a = math.sqrt(sum(value * value for value in counts_a.values()))
+    norm_b = math.sqrt(sum(value * value for value in counts_b.values()))
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot_product / (norm_a * norm_b)
 
 app = FastAPI(title="All-in-One Tools Backend")
 
@@ -334,10 +359,8 @@ async def document_similarity(text_a: str = Form(''), text_b: str = Form(''), fi
             if not doc_a or not doc_b:
                 raise HTTPException(status_code=400, detail='Both documents must contain readable text.')
 
-            vectorizer = TfidfVectorizer(stop_words='english')
-            vectors = vectorizer.fit_transform([doc_a, doc_b])
-            similarity = cosine_similarity(vectors[0:1], vectors[1:2])[0][0]
-            overall_percentage = round(float(similarity) * 100, 2)
+            similarity = _cosine_similarity(doc_a, doc_b)
+            overall_percentage = round(similarity * 100, 2)
 
             sentences_a = [sentence.strip() for sentence in re.split(r'(?<=[.!?])\s+', doc_a) if sentence.strip()]
             sentences_b = [sentence.strip() for sentence in re.split(r'(?<=[.!?])\s+', doc_b) if sentence.strip()]

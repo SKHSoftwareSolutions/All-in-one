@@ -39,6 +39,9 @@ function WordToPdfPage() {
     <ToolPageTemplate title="Word to PDF" description="Convert a .docx document into a PDF file using the server-side converter." metaDescription="Convert a Word document into a PDF file for sharing, printing, or archiving." usageSteps={['Upload a .docx file from your computer.', 'Start the conversion and wait for the PDF to be generated.', 'Download the PDF and open it in a viewer to confirm the formatting.']} faqItems={[{question:'What file types are supported?',answer:'The tool accepts .docx files and converts them to PDF using a server-side document converter.'},{question:'Will the layout stay exactly the same?',answer:'Most Word documents convert cleanly, but very complex formatting can shift slightly depending on the source file.'}]}>
       <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="space-y-4 rounded-2xl border border-slate-200 p-5">
+          <p className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-700">
+            This tool is temporarily unavailable while we're on a lighter hosting tier. It'll be back once document-conversion hosting is upgraded — try the other PDF tools in the meantime.
+          </p>
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Select .docx file</span>
             <input type="file" accept=".docx" onChange={(event) => setFile(event.target.files?.[0] || null)} className="mt-2 block w-full text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-slate-700" />
