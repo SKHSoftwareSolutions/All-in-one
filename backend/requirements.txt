@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pymupdf
+pdf2docx
+pypdf
+pillow
+reportlab
+scikit-learn
