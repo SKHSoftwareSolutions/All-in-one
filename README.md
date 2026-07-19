@@ -1,4 +1,4 @@
-# [ SITE NAME ]
+All in one
 
 A scaffolded all-in-one free online tools website built with React (Vite), Tailwind CSS, React Router, and a separate FastAPI backend.
 
